@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Магазин — Товары{% endblock %}
+
+{% block content %}
+<h1>Товары</h1>
+<form method="get" action="/" class="filters" id="filter-form">
+    <label>Категория:
+        <select name="category">
+            <option value="">Все</option>
+            {% for c in categories %}
+                <option value="{{ c }}" {% if c == selectedCategory %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Сортировка:
+        <select name="sortBy">
+            <option value="name" {% if sortBy == 'name' %}selected{% endif %}>По названию</option>
+            <option value="price" {% if sortBy == 'price' %}selected{% endif %}>По цене</option>
+        </select>
+    </label>
+    <label>Направление:
+        <select name="order">
+            <option value="asc" {% if order == 'asc' %}selected{% endif %}>Возрастание</option>
+            <option value="desc" {% if order == 'desc' %}selected{% endif %}>Убывание</option>
+        </select>
+    </label>
+</form>
+
+<div class="products" id="products-grid">
+    {% for p in products %}
+    <div class="product">
+        <h3>{{ p.name }}</h3>
+        <p class="category">{{ p.category }}</p>
+        <p class="price">{{ p.price }} ₽</p>
+        <button onclick="addToCart({{ p.id }})">В корзину</button>
+    </div>
+    {% empty %}
+    <p>Товаров не найдено</p>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function getCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+    function csrfHeaders(extra = {}) {
+        return { 'X-CSRFToken': getCookie('csrftoken'), ...extra };
+    }
+
+    function addToCart(productId) {
+        fetch('/api/cart/add/', {
+            method: 'POST',
+            headers: csrfHeaders({'Content-Type': 'application/json'}),
+            body: JSON.stringify({productId, quantity: 1})
+        }).then(r => r.json()).then(cart => {
+            document.getElementById('cart-count').textContent = cart.count;
+        });
+    }
+
+    function renderProducts(products) {
+        const grid = document.getElementById('products-grid');
+        if (!products.length) { grid.innerHTML = '<p>Товаров не найдено</p>'; return; }
+        grid.innerHTML = products.map(p => `
+            <div class="product">
+                <h3>${p.name}</h3>
+                <p class="category">${p.category}</p>
+                <p class="price">${p.price} ₽</p>
+                <button onclick="addToCart(${p.id})">В корзину</button>
+            </div>`).join('');
+    }
+
+    function applyFilters() {
+        const params = new URLSearchParams({
+            category: document.querySelector('[name=category]').value,
+            sortBy: document.querySelector('[name=sortBy]').value,
+            order: document.querySelector('[name=order]').value
+        });
+        fetch('/api/products/?' + params).then(r => r.json()).then(renderProducts);
+    }
+    document.getElementById('filter-form').addEventListener('submit', e => {
+        e.preventDefault(); applyFilters();
+    });
+    document.querySelectorAll('#filter-form select')
+        .forEach(s => s.addEventListener('change', applyFilters));
+</script>
+{% endblock %}

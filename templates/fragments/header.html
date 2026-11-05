@@ -1,0 +1,10 @@
+<header class="header">
+    <a href="/" class="logo">🛒 Магазин</a>
+    <nav>
+        <a href="/">Товары</a>
+        <a href="/cart/">Корзина (<span id="cart-count">{{ cartCount|default:0 }}</span>)</a>
+        <button type="button" onclick="CityManager.openModal()">
+            Город: <span id="city-label">...</span>
+        </button>
+    </nav>
+</header>

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Магазин — Корзина{% endblock %}
+
+{% block content %}
+<h1>Корзина</h1>
+<div id="cart-container">Загрузка...</div>
+<div class="total">Итого: <span id="total">0.00</span> ₽</div>
+<button id="checkout-btn" onclick="checkout()">Оформить покупку</button>
+<div id="message" class="message"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/cart.js' %}"></script>
+{% endblock %}
